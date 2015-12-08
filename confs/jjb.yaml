@@ -1,0 +1,140 @@
+- defaults:
+    name: global
+    project-type: freestyle
+    concurrent: true
+
+- job:
+     name: testproject-unit-tests
+     defaults: global
+     builders:
+       - shell: |
+           zuul-cloner http://ci.localdomain:8080 $ZUUL_PROJECT
+           cd $ZUUL_PROJECT
+           ./run_tests.sh
+
+- wrapper:
+    name: build-timeout
+    wrappers:
+      - timeout:
+          timeout: '{timeout}'
+          timeout-var: 'BUILD_TIMEOUT'
+          fail: true
+
+- builder:
+    name: revoke-sudo
+    builders:
+      - shell: |
+          #!/bin/bash -x
+          sudo rm -f /etc/sudoers.d/jenkins-sudo
+          # Prove that general sudo access is actually revoked
+          ! sudo -n true
+
+- builder:
+    name: gerrit-git-prep
+    builders:
+      - shell: |
+          #!/bin/bash
+          count=0
+          until /usr/local/jenkins/slave_scripts/gerrit-git-prep.sh http://ci.localdomain:8080 http://ci.localdomain:8080 ; do
+              echo "git failed, retrying"
+              count=$(($count + 1))
+              if [ $count -eq 3 ]; then
+                  echo "Maximum of 3 git retries reached"
+                  exit 1
+              fi
+              sleep 5
+          done
+
+
+- builder:
+    name: coverage
+    builders:
+      - shell: "/usr/local/jenkins/slave_scripts/run-cover.sh {env}"
+
+- builder:
+    name: pep8
+    builders:
+      - shell: "/usr/local/jenkins/slave_scripts/run-pep8.sh {env}"
+
+- builder:
+    name: python27
+    builders:
+      - shell: "/usr/local/jenkins/slave_scripts/run-pep8.sh {env}"
+
+- builder:
+    name: assert-no-extra-files
+    builders:
+      - shell: |
+          #!/bin/bash
+          OUT=`git ls-files --other --exclude-standard --directory`
+          if [ -z "$OUT" ]; then
+              echo "No extra files created during test."
+              exit 0
+          else
+              echo "The following un-ignored files were created during the test:"
+              echo "$OUT"
+              exit 0  # TODO: change to 1 to fail tests.
+          fi
+
+- job-template:
+    name: '{name}-coverage'
+
+    wrappers:
+      - build-timeout:
+          timeout: 40
+      - timestamps
+
+    builders:
+      - revoke-sudo
+      - gerrit-git-prep
+      - coverage:
+          env: cover
+
+    node: '{node}'
+
+
+- job-template:
+    name: 'gate-{name}-pep8'
+
+    builders:
+      - revoke-sudo
+      - gerrit-git-prep
+      - pep8:
+          env: pep8
+
+    node: '{node}'
+
+- job-template:
+    name: 'gate-{name}-python27'
+
+    wrappers:
+      - build-timeout:
+          timeout: 50
+      - timestamps
+
+    builders:
+      - revoke-sudo
+      - gerrit-git-prep
+      - pep8:
+          env: pep8
+
+    node: '{node}'
+
+- project:
+     name: testproject
+     node: master
+     jobs:
+       - testproject-unit-tests
+
+- job-group:
+    name: python-jobs
+    jobs:
+      - '{name}-coverage'
+      - 'gate-{name}-pep8'
+      - 'gate-{name}-python27'
+
+- project:
+    name: keystoneclient
+    node: master
+    jobs:
+      - python-jobs

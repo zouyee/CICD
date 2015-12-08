@@ -1,0 +1,162 @@
+pipelines:
+  - name: check
+    description: Newly uploaded patchsets enter this pipeline to receive an initial +/-1 Verified vote from Jenkins.
+    failure-message: Build failed.
+    manager: IndependentPipelineManager
+    precedence: low
+    require:
+      open: True
+      current-patchset: True
+    trigger:
+      gerrit:
+        - event: patchset-created
+        - event: comment-added
+          comment: (?i)recheck
+    start:
+      gerrit:
+        verified: 0
+    success:
+      gerrit:
+        verified: 1
+    failure:
+      gerrit:
+        verified: -1
+
+  - name: gate
+    description: Changes that have been approved by core developers are enqueued in order in this pipeline
+    manager: DependentPipelineManager
+    precedence: normal
+    require:
+      open: True
+      current-patchset: True
+      approval:
+        - verified: [1, 2]
+          username: zuul
+        - code-review: 2
+    trigger:
+      gerrit:
+        - event: comment-added
+          approval:
+            - code-review: 2
+        - event: comment-added
+          approval:
+            - verified: 1
+          username: zuul
+    start:
+      gerrit:
+        verified: 0
+    success:
+      gerrit:
+        verified: 2
+        submit: true
+    failure:
+      gerrit:
+        verified: -2
+
+
+  - name: post
+    description: This pipeline runs jobs that operate after each change is merged.
+    manager: IndependentPipelineManager
+    source: gerrit
+    precedence: low
+    trigger:
+      gerrit:
+        - event: ref-updated
+          ref: ^(?!refs/).*$
+
+
+
+
+  - name: tag
+    description: This pipeline runs jobs in response to any tag event.
+    manager: IndependentPipelineManager
+    source: gerrit
+    precedence: high
+    trigger:
+      gerrit:
+        - event: ref-updated
+          ref: ^refs/tags/.*$
+
+
+
+
+
+
+  - name: periodic-qa
+    description: Periodic jobs for the QA team.
+    manager: IndependentPipelineManager
+    source: gerrit
+    precedence: low
+    trigger:
+      timer:
+        - time: '2 6 * * *'
+    failure:
+      smtp:
+        from: jenkins@openstack.org
+        to: liujunwei@cmss.chinamobile.com
+        subject: 'Periodic jobs for {change.project} failed'
+
+
+
+
+
+  - name: merge-check
+    description: >
+      Each time a change merges, this pipeline verifies that all open changes
+      on the same project are still mergeable.
+    failure-message: Build failed (merge-check pipeline).
+    manager: IndependentPipelineManager
+    ignore-dependencies: true
+    source: gerrit
+    precedence: low
+    require:
+      approval:
+        - verified: [1, 2]
+          username: zuul
+    trigger:
+      zuul:
+        - event: project-change-merged
+    merge-failure:
+      gerrit:
+        verified: -1
+
+
+
+
+
+
+project-templates:
+  - name: merge-check
+    merge-check:
+      - noop
+
+  - name: python-jobs
+    check:
+      - 'gate-{name}-pep8'
+      - 'gate-{name}-python27'
+    gate:
+      - 'gate-{name}-pep8'
+      - 'gate-{name}-python27'
+
+
+
+
+
+
+projects:
+  - name: testproject
+    check:
+      - testproject-unit-tests
+    gate:
+      - testproject-unit-tests
+
+
+  - name: openstack/python-keystoneclient
+    check:
+      - gate-keystoneclient-pep8
+      - gate-keystoneclient-python27
+    gate:
+      - gate-keystoneclient-pep8
+      - gate-keystoneclient-python27
+    post:
+      - keystoneclient-coverage
