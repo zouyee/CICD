@@ -1,4 +1,4 @@
-ExZuul - Experiment Zuul on an easy to start platform
+continuous integration testing
 =====================================================
 
 !!! This docker container should only be used as a test platform !!!
@@ -14,6 +14,7 @@ This docker container is based on a centos7 image and contains:
 - Zuul
 - Jenkins
 - Jenkins-job-builder
+- Nodepool
 
 Use Fedora 21 Cloud as Docker host
 ----------------------------------
