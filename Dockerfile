@@ -110,11 +110,17 @@ RUN echo "install and prepare nodepool"
 RUM yum install libffi libffi-devel @development python python-devel -y
 RUM pip install nodepool
 RUN mkdir /etc/nodepool
+RUN mkdir /etc/nodepool/scripts
+RUN mkdir /tmp/nodepool
 RUN echo "install sqlite for nodepool image management"
-RUM yum install sqlite -y
-RUN cd /tmp
-RUN sqlite3 nodepool
-RUN .exit
+RUM yum install sqlite3 -y
+RUN sqlite3 /tmp/nodepool/nodepool ".database"
+ADD ./confs/base.sh /etc/nodepool/scripts/base.sh
+RUN chmod u+x /etc/nodepool/scripts/setup.sh
+ADD ./confs/nodepool.yaml /etc/nodepool/scripts/nodepool.yaml
+ADD ./confs/nodepool.logging.conf /etc/nodepool/nodepool.logging.conf
+ADD ./confs/hosts /etc/nodepool/scripts/hosts
+ADD ./confs/authorized_keys /etc/nodepool/scripts/authorized_keys
 
 RUN echo "install zmq and prepare zmq configurate"
 
@@ -128,6 +134,6 @@ RUN echo "you can change layout.yaml to configure your zuul pipeline in conf dir
 
 ADD ./confs/hosts /usr/local/jenkins/slave_scripts/
 
-EXPOSE 29418 8080 8081 80 8125
+EXPOSE 29418 8080 8081 80 8888
 
 CMD ["/start.sh"]

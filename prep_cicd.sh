@@ -2,7 +2,7 @@
 
 STRING=`grep -i "ci.localdomain" /etc/hosts`
 
-#if [ -z $STRING ];then
+
 echo "root user to exec script"
 echo "Only for Centos7"
 #yum groupinstall 'GNOME Desktop'
@@ -21,11 +21,10 @@ sudo yum install git python-pip
 
 echo "build docker "
 yum install wget -y
-#git clone https://github.com/zouyee/exzuul
-#cd exzuul
+
 
 sudo docker build -t exzuul .
-sudo docker run -d -h ci.localdomain -v /dev/urandom:/dev/random -p 80:80 -p 29418:29418 -p 8080:8080 -p 8081:8081 exzuul
+sudo docker run -d -h ci.localdomain -v /dev/urandom:/dev/random -p 80:80 -p 29418:29418 -p 8080:8080 -p 8081:8081 -p 8888:8888 exzuul
 
 CID=$(sudo docker ps | grep exzuul | cut -f1 -d' ')
 PID=$(sudo docker inspect --format '{{ .NetworkSettings.IPAddress }}' $CID)
