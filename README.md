@@ -16,25 +16,8 @@ This docker container is based on a centos7 image and contains:
 
 Use Fedora 21 Cloud as Docker host
 ----------------------------------
-The easiest way to start with Docker is to use a Fedora 21 Cloud image. Start
-the image and execute the following commands to install Docker and other
-requirements:
-
-```
-$ sudo yum install https://get.docker.com/rpm/1.7.0/fedora-21/RPMS/x86_64/docker-engine-1.7.0-1.fc21.x86_64.rpm
-$ sudo service docker start
-$ sudo docker run hello-world
-$ sudo yum install git python-pip
-```
-
-
-Services
---------
-
-Use ci.localdomain to access the services. It means you should
-add such a line in your laptop /etc/hosts:
-
-<container_ip> ci.localdomain
+We exec prep_cicd.sh for first deployment，when you want to enter into the docker instances，
+you could run second_exec.sh.
 
 
 ### Jenkins
@@ -52,60 +35,28 @@ Jenkins Jobs Builder is pre-configured and can be used locally to update jobs.
 Jenkins can be reached at http://ci.localdomain:8081/jenkins
 
 
-Build and start
----------------
-
-Install Docker at least 1.6 and build the container:
-
-```
-$ sudo docker build -t exzuul .
-```
-
-Start the container:
-
-```
-$ sudo docker run -d -h ci.localdomain -v /dev/urandom:/dev/random -p 80:80 -p 29418:29418 -p 8080:8080 -p 8081:8081 exzuul
-$ CID=$(sudo docker ps | grep exzuul | cut -f1 -d' ')
-```
-
-Get a live shell inside a running container:
-
-```
-$ sudo docker exec -i -t $CID /bin/bash
-```
-
-Get the container IP:
-
-```
-$ sudo docker inspect --format '{{ .NetworkSettings.IPAddress }}' $CID
-```
-
-You should access the container using ci.localdomain hostname instead
-of the IP. Please add "<container_ip> ci.localdomain" in /etc/hosts.
 
 
-WARNING: If the container is stopped and restarted all local work and
-configuration will be lost.
 
 
 Configure a first project to be validated via Zuul
 --------------------------------------------------
-
-Here is the first steps to perform in order to have a project hosted on Gerrit
-and a job triggered by Zuul.
-
+#First: you need create new project in gerrit web
+#Second: you need add your public key into your gerrit accounter 
 * Login to Gerrit as the admin user. Add your public key in the admin user
   settings page. If you don't have a key yet, create one:
 ```
 $ ssh-keygen
 $ cat ~/.ssh/id_rsa.pub
 ```
-* Create a Job in Jenkins for "testproject" using the following command. The
-  container already has a valid JJB configuration with a working job definition
-  for "testproject".
+#Third:you need create your jobs which you want, files in /etc/jenkins_jobs/jobs
+which you could find the rule about how to describe  new jobs .
+[jjb template](http://docs.openstack.org/infra/system-config/jjb.html)
+when finished the definition of jobs , you could using the command to updating jenkins job.
+
 
 ```
-$ sudo docker exec -i -t $CID /bin/bash
+
 # # Create a job in Jenkins for a project call "testproject"
 # jenkins-jobs --conf /etc/jenkins_jobs/jenkins_jobs.ini update /etc/jenkins_jobs/jobs
 ```
