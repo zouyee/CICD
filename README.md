@@ -172,27 +172,29 @@ nodepool is used to interactive with openstack cloud, it cloud spwan instances a
 nodepool.yaml and scriptes which you assign,there are something must be reviewed.
 Document: http://docs.openstack.org/infra/nodepool/
 NOTICE:
+```
 cron:
   check: '*/15 * * * *'
   cleanup: '*/5 * * * *'
   image-update: '10 2 * * *'
+```  
   
   
 check 、cleanup and image-update means the dateline that nodepool perform the operation.
-
+```
 dburi: 'sqlite:////tmp/nodepool/nodepool'
-
+```
 It appears that you need a database which named nodepool,absolutely you could get other names.
-
+```
 gearman-servers:
   - host: 127.0.0.1
 
 zmq-publishers:
   - tcp://127.0.0.1:8888
-
+```
 you must be check jenkins plugin,make sure gearman plugin and zmq-publishers be installed.
 
-
+```
 labels:
   - name: bare-trusty
     image: bare-trusty
@@ -209,11 +211,11 @@ labels:
     image: bare-bcec
     providers:
       - name: centos
-
+```
 labels name using for bind to jenkins project, which you could create a project including 'node' key
 
 
-
+```
 providers:
   - name: centos
     auth-url: 'http://10.134.1.3:35357/v2.0'
@@ -256,7 +258,7 @@ targets:
       credentials-id: 4f98191e-efbb-4ac4-8131-0e4a8bb2ce14
       url: http://jenkins.tests.dom:8080/jenkins/
       user: 'jenkins'
-      
+```      
 apikey: it could find using jenkins web
 credentials-id: find in crendentials.xml, when you create a credential ,you need put /root/.ssh/id_rsa into 
 blanke and cat /roo/.ssh/id_rsa.pub into /etc/nodepool/script/ authorize_key
