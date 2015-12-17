@@ -107,13 +107,13 @@ RUN chmod +x /home/prepareproject.sh
 RUN chmod +x /start.sh
 
 RUN echo "install and prepare nodepool"
-RUM yum install libffi libffi-devel @development python python-devel -y
-RUM pip install nodepool
+RUN yum install libffi libffi-devel @development python python-devel -y
+RUN pip install nodepool
 RUN mkdir /etc/nodepool
 RUN mkdir /etc/nodepool/scripts
 RUN mkdir /tmp/nodepool
 RUN echo "install sqlite for nodepool image management"
-RUM yum install sqlite3 -y
+RUN yum install sqlite3 -y
 RUN sqlite3 /tmp/nodepool/nodepool ".database"
 ADD ./confs/base.sh /etc/nodepool/scripts/base.sh
 RUN chmod u+x /etc/nodepool/scripts/setup.sh
