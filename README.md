@@ -41,15 +41,15 @@ Jenkins can be reached at http://ci.localdomain:8081/jenkins
 
 Configure a first project to be validated via Zuul
 --------------------------------------------------
-#First: you need create new project in gerrit web
-#Second: you need add your public key into your gerrit accounter 
+1.First: you need create new project in gerrit web
+2.Second: you need add your public key into your gerrit accounter 
 * Login to Gerrit as the admin user. Add your public key in the admin user
   settings page. If you don't have a key yet, create one:
 ```
 $ ssh-keygen
 $ cat ~/.ssh/id_rsa.pub
 ```
-#Third:you need create your jobs which you want, files in /etc/jenkins_jobs/jobs
+3.you need create your jobs which you want, files in /etc/jenkins_jobs/jobs
 which you could find the rule about how to describe  new jobs .
 [jjb template](http://docs.openstack.org/infra/system-config/jjb.html)
 when finished the definition of jobs , you could using the command to updating jenkins job.
