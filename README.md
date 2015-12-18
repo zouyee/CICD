@@ -217,9 +217,11 @@ apikey: it could find using jenkins web
 credentials-id: find in crendentials.xml, when you create a credential ,you need put /root/.ssh/id_rsa into 
 blanke and cat /roo/.ssh/id_rsa.pub into /etc/nodepool/script/ authorize_key
 关于jenkins credential，使用如下方法设置：
+```
     点击Manage Jenkins > Manage Nodes > CD > Configure
     点击Credentials部分的Add按钮
     输入root作为用户名和/root/.ssh/id_rsa秘钥，点击Add按钮
     选中Credentials部分新创建的key
     点击Save
     
+```
